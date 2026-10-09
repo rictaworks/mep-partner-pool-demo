@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.wrangler/
+coverage/
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+*.local.jsonc
+!wrangler.local.jsonc
+*.log
+*.pem
+*.p12
+*.pfx
+config/master.key

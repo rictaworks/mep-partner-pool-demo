@@ -1,0 +1,3 @@
+#!/bin/sh
+printf '%s\n' 'Merge is outside setup authorization. Complete reviewer and pr-checker review on the draft PR and obtain separate merge authorization.' >&2
+exit 1
