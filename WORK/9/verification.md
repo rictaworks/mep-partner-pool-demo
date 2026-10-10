@@ -38,3 +38,11 @@ CIには公式Chromiumのインストール、ローカルD1migration、E2Eと�
 新規npm ci（171 packages）後、npm run checkは13 suites / 97 tests成功（82.69秒）。lint・4境界型検査・frontend build・Worker dry-run・E2E型検査・security:check・diffチェック成功。npm auditは全依存を含めて脆弱性0件。通常レビュー承認後、独立したセキュリティレビューはno material security issue found。生成JSONの保存先をリポジトリ直下のignore対象へ修正し、親のE2E再実行も8/8成功（56.1秒、flaky 0）。smokeは実APIのhealth、70地域、10事務所、案件作成・改修補完候補・削除まで成功。
 
 本記録はPR作成前の自動検証です。マージ後の最終mainとCIは完了報告時に別途再確認します。ユーザー本人のブラウザ受入や本番公開は実施していません。
+
+## 最終mainで再現したテスト接続障害の修正
+
+マージ後のmain CIは成功しましたが、このクラウド環境の再検証でMiniflareのD1結果取得が再び切れました。非同期接続を作った後にNodeイベントループを6秒止める回帰テストで同じUND_ERR_SOCKETを再現し、その時点でSESSIONが1件commit済みであることも確認しました。原因は同期prepare/bindによる長い停止と、切断通知・idle timerを処理する前の非同期接続再利用でした。
+
+テストharnessのみ、raw.batchの直前にsetTimeout(0)でイベントループを譲り、接続の後始末を処理します。本物のD1 batchは1回だけ実行し、失敗は伝播します。リトライ・mock・本番処理変更はありません。同じ6秒停止の再現テストは修正後に成功しました。通常レビューの後、セキュリティレビューと全体検証を経て#9の検証補足PRとして扱います。
+
+補足修正後の新規npm ciと全体checkは14 suites / 98 tests成功（97.48秒）。lint・4境界型検査・frontend build・Worker dry-run・E2E型検査・security:check・diffチェック成功。通常レビュー、続く独立セキュリティレビューとも承認済み。
