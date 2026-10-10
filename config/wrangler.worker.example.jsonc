@@ -9,7 +9,7 @@
   "preview_urls": false
   // Inactive deployment reference; replace placeholder only in separately authorized task:
   // ,"d1_databases": [{ "binding": "DB", "database_name": "REPLACE_ME", "database_id": "REPLACE_ME", "migrations_dir": "migrations" }]
-  // Enable only after implementing and testing the reset handler:
+  // Inactive reference: UTC18:00 = JST03:00. Enable only in separately authorized deployment:
   // ,"triggers": { "crons": ["0 18 * * *"] }
   // Routing, account selection, and real resources require a separate deployment task.
 }

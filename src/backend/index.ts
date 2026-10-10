@@ -1,3 +1,4 @@
+import {scheduledReset} from './reset';
 import {REGIONS} from '../core';
 import {Repository} from './db/repository';
 import {checkMutationRequest,getSession} from './session';
@@ -31,4 +32,4 @@ export async function handleApi(request:Request,env:Env):Promise<Response> {
   return result;
  }catch(error){return errorResponse(error);}
 }
-export default {fetch:handleApi} satisfies ExportedHandler<Env>;
+export default {fetch:handleApi,scheduled:scheduledReset} satisfies ExportedHandler<Env>;
