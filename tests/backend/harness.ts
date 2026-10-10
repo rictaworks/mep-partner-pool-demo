@@ -5,7 +5,18 @@ export async function databaseHarness() {
  options.telemetry={enabled:false};
  const mf = new Miniflare(options);
  try {
- const db = await mf.getD1Database('DB');
+ const raw = await mf.getD1Database('DB') as unknown as D1Database;
+ const db:D1Database = {
+  prepare:query=>raw.prepare(query),exec:query=>raw.exec(query),
+  withSession:bookmark=>raw.withSession(bookmark),dump:()=>raw.dump(),
+  async batch<T>(statements:D1PreparedStatement[]):Promise<D1Result<T>[]> {
+   // Miniflare prepare/bind uses a synchronous bridge. Large statement builds can
+   // block Node past workerd's idle timeout; process queued connection cleanup
+   // before the async result fetch. Execute the real D1 batch exactly once.
+   await new Promise<void>(resolve=>setTimeout(resolve,0));
+   return raw.batch<T>(statements);
+  },
+ };
  for (const file of readdirSync('migrations').filter(f=>f.endsWith('.sql')).sort()) {
   const sql = readFileSync(`migrations/${file}`,'utf8');
   // Each statement is sent through real workerd D1; triggers remain whole SQL statements.

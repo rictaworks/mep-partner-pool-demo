@@ -23,3 +23,5 @@ Persistence snapshots read SESSION revision first, then owner-scoped entities. E
 ローカルD1へ全migrationを適用してから `npm run test:e2e` を実行します。サーバーが未起動ならPlaywrightがWorker8787/Vite5173を起動して終了時に停止します。既存サーバーを再利用した場合は、そのプロセスを停止しません。クラウド環境では `/usr/bin/chromium` を使い、CIは `npx playwright install --with-deps chromium` で公式Chromiumを入れます。`npm run typecheck:e2e` でブラウザテスト自体も型検査します。Vitestの実D1テスト、npm ci、別のWorkerを同時実行しないでください。
 
 デスクトップ1280×900とモバイル390×844で実APIを検証します。`WORK/9/browser-results/` は一時的な失敗調査用でgit管理外です。保存する画像は架空データの正常画面のみです。起動済みのローカルサーバーに対する `npm run smoke` も実APIを使い、新しいセッションの架空案件を作成して削除します。ブラウザごとにCookieで分離されるため、Cookieを削除すると別のサンプルデータになります。
+
+Miniflareのprepare/bindは同期ブリッジでNodeイベントループを止めます。長い準備の間にworkerdのidle接続が切れると、非同期結果取得でUND_ERR_SOCKETになることを6秒の意図的なイベントループ停止で再現しました。DBは既にcommit済みの場合があるため、リトライしません。テストharnessだけでbatch直前にイベントループを1回譲り、接続の後始末を処理してから本物のD1 batchを1回実行します。tests/backend/transport.test.tsで、単一session/10事務所/3案件を維持することを検証します。本番Workerやトランザクション処理は変更しません。
