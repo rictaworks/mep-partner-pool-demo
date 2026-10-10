@@ -25,7 +25,19 @@ export class Repository {
  }
  async listPartners(owner:VerifiedOwner):Promise<Partner[]> {
   const rows=await this.db.prepare('SELECT id,code,short_name,capacity,active,revision FROM PARTNER WHERE session_id=? ORDER BY code').bind(owner).all<PartnerRow>();
-  return Promise.all(rows.results.map(row=>this.partner(owner,row)));
+  const [fields,licenses,regions,services,counts]=await Promise.all([
+   this.db.prepare('SELECT partner_id,field FROM PARTNER_FIELD WHERE session_id=? ORDER BY partner_id,field').bind(owner).all<{partner_id:number;field:Field}>(),
+   this.db.prepare('SELECT partner_id,license FROM PARTNER_LICENSE WHERE session_id=? ORDER BY partner_id,license').bind(owner).all<{partner_id:number;license:License}>(),
+   this.db.prepare('SELECT partner_id,region_code FROM PARTNER_REGION WHERE session_id=? ORDER BY partner_id,region_code').bind(owner).all<{partner_id:number;region_code:string}>(),
+   this.db.prepare('SELECT partner_id,service FROM PARTNER_SERVICE WHERE session_id=? ORDER BY partner_id,service').bind(owner).all<{partner_id:number;service:Service}>(),
+   this.db.prepare('SELECT partner_id,use,work_type,count FROM PARTNER_EXPERIENCE WHERE session_id=?').bind(owner).all<{partner_id:number;use:Use;work_type:WorkType;count:number}>(),
+  ]);
+  return rows.results.map(row=>{
+   const experience:Record<Use,Record<WorkType,number>>={'教育施設':{'新築':0,'改修':0},'公営住宅':{'新築':0,'改修':0},'公共施設':{'新築':0,'改修':0}};
+   for(const count of counts.results.filter(c=>c.partner_id===row.id))experience[count.use][count.work_type]=count.count;
+   return {id:row.id,code:row.code,shortName:row.short_name,capacity:row.capacity,active:row.active===1,revision:row.revision,experience,
+    fields:fields.results.filter(r=>r.partner_id===row.id).map(r=>r.field),licenses:licenses.results.filter(r=>r.partner_id===row.id).map(r=>r.license),regions:regions.results.filter(r=>r.partner_id===row.id).map(r=>r.region_code),services:services.results.filter(r=>r.partner_id===row.id).map(r=>r.service)};
+  });
  }
  async getPartner(owner:VerifiedOwner,id:number):Promise<Partner|null> {
   const row=await this.db.prepare('SELECT id,code,short_name,capacity,active,revision FROM PARTNER WHERE session_id=? AND id=?').bind(owner,id).first<PartnerRow>();
@@ -45,7 +57,8 @@ export class Repository {
  }
  async listProjects(owner:VerifiedOwner):Promise<Project[]> {
   const rows=await this.db.prepare('SELECT * FROM PROJECT WHERE session_id=? ORDER BY id').bind(owner).all<ProjectRow>();
-  return Promise.all(rows.results.map(row=>this.project(owner,row)));
+  const services=await this.db.prepare('SELECT project_id,service FROM PROJECT_SERVICE WHERE session_id=? ORDER BY project_id,service').bind(owner).all<{project_id:number;service:Service}>();
+  return rows.results.map(row=>({id:row.id,name:row.name,requiredFields:JSON.parse(row.fields) as Field[],workType:row.work_type,use:row.use,region:row.region_code,floors:row.floors,floorArea:row.floor_area,period:{start:row.start_date,end:row.due_date},orderType:row.order_type,requireListedLicense:row.require_listed_license===1,state:row.state,revision:row.revision,requiredServices:services.results.filter(r=>r.project_id===row.id).map(r=>r.service)}));
  }
  async getProject(owner:VerifiedOwner,id:number):Promise<Project|null> {
   const row=await this.db.prepare('SELECT * FROM PROJECT WHERE session_id=? AND id=?').bind(owner,id).first<ProjectRow>();return row?this.project(owner,row):null;

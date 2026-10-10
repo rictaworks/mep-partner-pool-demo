@@ -1,0 +1,1 @@
+CREATE TABLE ASSIGNMENT_REQUEST(session_id TEXT NOT NULL,project_id INTEGER NOT NULL,request_id TEXT NOT NULL,operation TEXT NOT NULL CHECK(operation IN ('confirm','cancel')),fingerprint TEXT NOT NULL,PRIMARY KEY(session_id,project_id,request_id),FOREIGN KEY(session_id,project_id) REFERENCES PROJECT(session_id,id) ON DELETE CASCADE);
