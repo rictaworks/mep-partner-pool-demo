@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+# Automated checks supplement the documented manual security review.
+npm run security:check
+git diff --cached --check

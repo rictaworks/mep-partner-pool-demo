@@ -1,0 +1,35 @@
+{
+  "name": "mep-partner-pool-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "dev:api": "wrangler dev --local --ip 127.0.0.1 --port 8787 --config wrangler.local.jsonc",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc -p tsconfig.core.json && tsc -p tsconfig.frontend.json && tsc -p tsconfig.backend.json && tsc -p tsconfig.tools.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "vite build",
+    "build:backend": "wrangler deploy --dry-run --outdir dist/backend --config wrangler.local.jsonc",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "hooks:install": "git config --local core.hooksPath .githooks",
+    "security:check": "node scripts/security-check.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261009.1",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.12.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.1",
+    "vite": "8.3.4",
+    "vitest": "5.0.3",
+    "wrangler": "4.149.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  // Inert reference template. No script uses this file.
+  // Copy to repository root as wrangler.worker.local.jsonc only in a separately authorized deployment task.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mep-partner-pool-demo-api",
+  "main": "src/backend/index.ts",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": false,
+  "preview_urls": false
+  // Future D1 binding, only after schema, ownership checks, and resource authorization:
+  // ,"d1_databases": [{ "binding": "DB", "database_name": "REPLACE_ME", "database_id": "REPLACE_ME" }]
+  // Enable only after implementing and testing the reset handler:
+  // ,"triggers": { "crons": ["0 18 * * *"] }
+  // Routing, account selection, and real resources require a separate deployment task.
+}

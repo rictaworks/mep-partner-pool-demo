@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mep-partner-pool-demo-local",
+  "main": "src/backend/index.ts",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": false,
+  "preview_urls": false
+  // No remote bindings, routes, credentials, or scheduled triggers.
+}

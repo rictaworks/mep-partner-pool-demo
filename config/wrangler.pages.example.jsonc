@@ -1,0 +1,8 @@
+{
+  // Inert reference template; copy to repository root only in a separately authorized deployment task.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mep-partner-pool-demo",
+  "pages_build_output_dir": "dist/frontend",
+  "compatibility_date": "2026-10-09"
+  // No API binding, account ID, or credential is configured.
+}
