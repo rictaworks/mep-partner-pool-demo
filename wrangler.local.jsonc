@@ -4,6 +4,7 @@
   "main": "src/backend/index.ts",
   "compatibility_date": "2026-10-09",
   "workers_dev": false,
-  "preview_urls": false
-  // No remote bindings, routes, credentials, or scheduled triggers.
+  "preview_urls": false,
+  "d1_databases": [{"binding":"DB","database_name":"mep-partner-pool-demo-local","database_id":"00000000-0000-0000-0000-000000000004","migrations_dir":"migrations","remote":false}]
+  // Local-only binding. No resources are created; no routes or scheduled triggers.
 }
