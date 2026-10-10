@@ -5,7 +5,7 @@ const unbound={} as Env;
 describe('HTTP adapter availability',()=>{
  it('reports CRUD readiness without claiming complete features or creating a session',async()=>{
  const response=await worker.fetch(new Request('http://localhost/api/health'),unbound);
- expect(response.status).toBe(200);expect(await response.json()).toEqual({status:'crud-ready',featuresImplemented:false});expect(response.headers.get('cache-control')).toBe('no-store');expect(response.headers.get('set-cookie')).toBeNull();
+ expect(response.status).toBe(200);expect(await response.json()).toEqual({status:'backend-ready',featuresImplemented:false});expect(response.headers.get('cache-control')).toBe('no-store');expect(response.headers.get('set-cookie')).toBeNull();
  });
  it('returns a safe error when persistence binding is unavailable',async()=>{
  const response=await worker.fetch(new Request('http://localhost/api/partners'),unbound);expect(response.status).toBe(500);expect(await response.json()).toMatchObject({error:{code:'INTERNAL'}});expect(response.headers.get('set-cookie')).toBeNull();

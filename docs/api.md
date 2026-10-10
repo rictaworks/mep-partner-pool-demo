@@ -63,3 +63,15 @@ AssignmentRequest は `requestId,projectRevision,selections:[{partnerId,fields}]
 用途ごとの新築+改修実績の合計も安全整数内とし、巨大な数値の丸めで順位の同点判定を誤らないようサーバー検証します。
 
 ローカルVite→WorkerプロキシはWorker URLをAPIポートへ正規化するため、`APP_ORIGIN=http://127.0.0.1:5173` をローカル設定に固定し、mutationのOriginをその値へ厳密照合します。任意Host/転送ヘッダーやリクエストbodyから許可Originを決めません。本番同一originでは未設定時にrequest URL originを使い、別の信頼済みプロキシが正規化する場合のみ、別途承認された本番構成で正しいアプリOriginを明示してください。
+
+## 候補・割当の原子的実装
+
+候補抽出POSTは案件のrevisionを1増やし、返したprojectRevisionを確定要求に使います。既に確定した担当分野は候補構成前に固定し、順位付け後の上位20組制限で有効な残分野候補を見失わないようにします。確定は送信された担当事務所だけを用いて純粋coreで再判定するため、古い候補が最新上位20組に入らなくても条件を満たせば確定できます。
+
+一部確定は残分野を補える仕様条件に合う候補構成が現在のpoolに存在する場合だけ受け付けます。既存担当は変更できず、変更時は取消を先に行います。既存確定した同一案件の稼働だけは再判定から除外し、手動・他案件の稼働は含めます。同じ事務所の残分野追加では既存assignmentのfieldsを増やし、稼働は1件のままです。取消は当該assignmentだけをcancelledにして、その稼働とactive field slotを削除します。他方の担当が残ればpartial、残らなければcandidatesになります。
+
+ASSIGNMENT_REQUEST は owner/案件/requestId に一意で、operationと正規化した元要求（projectRevisionを含む）のfingerprintを保持します。同一要求の再送は現在の案件・割当状態を返し、取消後に元確定要求を再送しても再予約しません。同じキーを別操作や別内容には使えません。確定要求は要求ログが所有者ごとに2,000件に達したら409で拒否します。取消は上限で妨げず、cancelledの割当への重複取消は新たなログや状態変更を作らず現在状態を返します。
+
+snapshot取得前にSESSION revisionを読み、最新core再判定→assignment/field slot/engagement/案件状態/要求ログの追加までを同じrevision guard付きD1 batchで行います。同一要求の競合はguard失敗後に確定済ログを確認して現在の結果を返します。並列別要求・別案件の最後1枠は一方のみ成立し、組の片方失敗は全行をrollbackします。module lockやbatchだけを競合保証には使いません。
+
+健康状態はバックエンド実装段階で `{status:"backend-ready",featuresImplemented:false}` です。UI・定期リセット統合の完成表示は後続issueで行います。
