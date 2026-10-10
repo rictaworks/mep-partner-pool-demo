@@ -1,29 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import {describe,expect,it} from 'vitest';
 import worker from '../src/backend/index';
-
-describe('setup HTTP boundary', () => {
-  it('reports setup status without claiming working features or creating a session', async () => {
-    const response = worker.fetch(new Request('http://localhost/api/health'));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ status: 'setup-only', featuresImplemented: false });
-    expect(response.headers.get('cache-control')).toBe('no-store');
-    expect(response.headers.get('set-cookie')).toBeNull();
-  });
-
-  it.each(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])(
-    'rejects %s feature requests without returning fabricated data', async (method) => {
-      const response = worker.fetch(new Request('http://localhost/api/partners', { method }));
-      expect(response.status).toBe(501);
-      expect(await response.json()).toMatchObject({ error: 'NOT_IMPLEMENTED' });
-      expect(response.headers.get('set-cookie')).toBeNull();
-    },
-  );
-
-  it('does not treat a POST to health as a successful operation', () => {
-    expect(worker.fetch(new Request('http://localhost/api/health', { method: 'POST' })).status).toBe(501);
-  });
-
-  it('returns 404 outside the API namespace', () => {
-    expect(worker.fetch(new Request('http://localhost/apiculture')).status).toBe(404);
-  });
+import type {Env} from '../src/backend/index';
+const unbound={} as Env;
+describe('HTTP adapter availability',()=>{
+ it('reports CRUD readiness without claiming complete features or creating a session',async()=>{
+ const response=await worker.fetch(new Request('http://localhost/api/health'),unbound);
+ expect(response.status).toBe(200);expect(await response.json()).toEqual({status:'crud-ready',featuresImplemented:false});expect(response.headers.get('cache-control')).toBe('no-store');expect(response.headers.get('set-cookie')).toBeNull();
+ });
+ it('returns a safe error when persistence binding is unavailable',async()=>{
+ const response=await worker.fetch(new Request('http://localhost/api/partners'),unbound);expect(response.status).toBe(500);expect(await response.json()).toMatchObject({error:{code:'INTERNAL'}});expect(response.headers.get('set-cookie')).toBeNull();
+ });
+ it.each(['PUT','PATCH','DELETE','OPTIONS'])('rejects unsupported collection method %s',async method=>{const response=await worker.fetch(new Request('http://localhost/api/partners',{method}),unbound);expect(response.status).toBe(405);});
+ it('does not treat POST to health as success',async()=>{expect((await worker.fetch(new Request('http://localhost/api/health',{method:'POST'}),unbound)).status).toBe(405);});
+ it('returns404 outside API namespace',async()=>{expect((await worker.fetch(new Request('http://localhost/apiculture'),unbound)).status).toBe(404);});
 });

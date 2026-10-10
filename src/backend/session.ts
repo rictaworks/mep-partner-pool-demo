@@ -18,10 +18,10 @@ export async function getSession(request:Request,db:D1Database,now = Date.now())
  return {owner,cookie:`${SESSION_COOKIE}=${owner}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`};
 }
 /** Run before session creation and body parsing. GET/HEAD are read-only. */
-export function checkMutationRequest(request:Request):Response|null {
+export function checkMutationRequest(request:Request,applicationOrigin?:string):Response|null {
  if(['GET','HEAD','OPTIONS'].includes(request.method))return null;
  const url=new URL(request.url),origin=request.headers.get('Origin');
- if(origin!==url.origin || request.headers.get('Sec-Fetch-Site')==='cross-site')return Response.json({error:{code:'CSRF',message:'同一サイトから操作してください。'}},{status:403,headers:{'Cache-Control':'no-store'}});
+ if(origin!==(applicationOrigin??url.origin) || request.headers.get('Sec-Fetch-Site')==='cross-site')return Response.json({error:{code:'CSRF',message:'同一サイトから操作してください。'}},{status:403,headers:{'Cache-Control':'no-store'}});
  const media=(request.headers.get('Content-Type')??'').split(';')[0]?.trim().toLowerCase();
  if(media!=='application/json')return Response.json({error:{code:'UNSUPPORTED_MEDIA_TYPE',message:'JSON形式で送信してください。'}},{status:415,headers:{'Cache-Control':'no-store'}});
  return null;
