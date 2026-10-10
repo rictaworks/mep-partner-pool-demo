@@ -14,7 +14,7 @@ export async function handleApi(request:Request,env:Env):Promise<Response> {
  try {
   const url=new URL(request.url),path=url.pathname;
   if(url.search)fail(400,'VALIDATION','このAPIはクエリ指定を受け付けません。');
-  if(path==='/api/health'){if(request.method!=='GET')fail(405,'METHOD_NOT_ALLOWED','操作できません。');return Response.json({status:'backend-ready',featuresImplemented:false},{headers:{'Cache-Control':'no-store'}});}
+  if(path==='/api/health'){if(request.method!=='GET')fail(405,'METHOD_NOT_ALLOWED','操作できません。');return Response.json({status:'demo-ready',featuresImplemented:true},{headers:{'Cache-Control':'no-store'}});}
   if(path==='/api/regions'){if(request.method!=='GET')fail(405,'METHOD_NOT_ALLOWED','操作できません。');return response(REGIONS);}
   const pm=/^\/api\/partners(?:\/([^/]+))?$/u.exec(path),pj=/^\/api\/projects(?:\/([^/]+))?$/u.exec(path),em=/^\/api\/partners\/([^/]+)\/engagements(?:\/([^/]+))?$/u.exec(path);
   const cm=/^\/api\/projects\/([^/]+)\/candidates$/u.exec(path),am=/^\/api\/projects\/([^/]+)\/assignments(?:\/([^/]+))?$/u.exec(path);
