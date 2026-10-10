@@ -11,7 +11,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       CI: 'true'
       WRANGLER_SEND_METRICS: 'false'
@@ -25,3 +25,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: timeout 8m npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npx wrangler d1 migrations apply mep-partner-pool-demo-local --local --config wrangler.local.jsonc
+      - run: npm run typecheck:e2e
+      - run: timeout 4m npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-evidence
+          path: WORK/9/

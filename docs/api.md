@@ -58,7 +58,7 @@ AssignmentRequest は `requestId,projectRevision,selections:[{partnerId,fields}]
 
 確定中の事務所は削除に加えて編集も409で拒否します。資格や対応条件の編集で既存確定を無効にしないため、取消を先に求めます。案件の条件変更後はregisteredに戻し、revisionを増加させます。手動稼働DELETEは対象事務所・所有者・manual由来が一致する行だけ操作します。存在しない対象と他ownerの対象は共に404です。CRUD一覧の絞り込みはUIで行い、APIはqueryを受け取りません。
 
-`/health` はCRUD実装段階では `{status:"crud-ready",featuresImplemented:false}` を返します。全業務機能完成とは表示しません。
+`/health` は `{status:"demo-ready",featuresImplemented:true}` を返します。ヘルスチェックではセッションを生成しません。本番公開済みを意味するものではありません。
 
 用途ごとの新築+改修実績の合計も安全整数内とし、巨大な数値の丸めで順位の同点判定を誤らないようサーバー検証します。
 
@@ -73,5 +73,3 @@ AssignmentRequest は `requestId,projectRevision,selections:[{partnerId,fields}]
 ASSIGNMENT_REQUEST は owner/案件/requestId に一意で、operationと正規化した元要求（projectRevisionを含む）のfingerprintを保持します。同一要求の再送は現在の案件・割当状態を返し、取消後に元確定要求を再送しても再予約しません。同じキーを別操作や別内容には使えません。確定要求は要求ログが所有者ごとに2,000件に達したら409で拒否します。取消は上限で妨げず、cancelledの割当への重複取消は新たなログや状態変更を作らず現在状態を返します。
 
 snapshot取得前にSESSION revisionを読み、最新core再判定→assignment/field slot/engagement/案件状態/要求ログの追加までを同じrevision guard付きD1 batchで行います。同一要求の競合はguard失敗後に確定済ログを確認して現在の結果を返します。並列別要求・別案件の最後1枠は一方のみ成立し、組の片方失敗は全行をrollbackします。module lockやbatchだけを競合保証には使いません。
-
-健康状態はバックエンド実装段階で `{status:"backend-ready",featuresImplemented:false}` です。UI・定期リセット統合の完成表示は後続issueで行います。
