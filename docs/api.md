@@ -51,3 +51,15 @@ AssignmentRequest は `requestId,projectRevision,selections:[{partnerId,fields}]
 取消は当該 owner/案件/割当由来の稼働だけを戻し、繰り返しも安全です。手動稼働ルートは assignmentId が付いた稼働を操作できません。確定がある案件の条件変更/削除と確定中事務所の削除は409で取消を先に要求します。更新は revision を検証し、成功時に増加させます。関連データ更新による候補の陳腐化は確定時の最新全件再判定で拒否します。
 
 日次リセットは UTC18:00 の scheduled handler のみで行い、公開HTTPルートはありません。REGION_MASTER以外を削除し、次のアクセスで新セッションとサンプルを作ります。
+
+## CRUD 実装時の安全な制限
+
+所有者ごとに事務所100件・案件100件・稼働1,000件まで登録できます。seed を含めて数え、上限は409 CONFLICTとします。競合時もsession revision guardで上限のread/writeを保護します。選定計算量の増大を抑えるデモの制限です。
+
+確定中の事務所は削除に加えて編集も409で拒否します。資格や対応条件の編集で既存確定を無効にしないため、取消を先に求めます。案件の条件変更後はregisteredに戻し、revisionを増加させます。手動稼働DELETEは対象事務所・所有者・manual由来が一致する行だけ操作します。存在しない対象と他ownerの対象は共に404です。CRUD一覧の絞り込みはUIで行い、APIはqueryを受け取りません。
+
+`/health` はCRUD実装段階では `{status:"crud-ready",featuresImplemented:false}` を返します。全業務機能完成とは表示しません。
+
+用途ごとの新築+改修実績の合計も安全整数内とし、巨大な数値の丸めで順位の同点判定を誤らないようサーバー検証します。
+
+ローカルVite→WorkerプロキシはWorker URLをAPIポートへ正規化するため、`APP_ORIGIN=http://127.0.0.1:5173` をローカル設定に固定し、mutationのOriginをその値へ厳密照合します。任意Host/転送ヘッダーやリクエストbodyから許可Originを決めません。本番同一originでは未設定時にrequest URL originを使い、別の信頼済みプロキシが正規化する場合のみ、別途承認された本番構成で正しいアプリOriginを明示してください。

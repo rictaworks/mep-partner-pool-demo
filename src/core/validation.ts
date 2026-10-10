@@ -42,6 +42,7 @@ export function validatePartner(value: unknown): ValidationResult<PartnerInput> 
    if (!record(counts)) {issue(errors,`experience.${use}`,false);continue;}
    keys(counts,WORK_TYPES,errors,`experience.${use}`);
    for (const work of WORK_TYPES) issue(errors,`experience.${use}.${work}`,integer(counts[work],0));
+   if (integer(counts['新築'],0) && integer(counts['改修'],0)) issue(errors,`experience.${use}`,Number.isSafeInteger(Number(counts['新築'])+Number(counts['改修'])));
   }
  }
  return errors.length ? {ok:false,errors} : {ok:true,value:value as unknown as PartnerInput};

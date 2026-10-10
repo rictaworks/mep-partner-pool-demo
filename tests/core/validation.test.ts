@@ -16,3 +16,6 @@ it.each([{start:'2028-02-29',end:'2028-02-29'},{start:'2000-02-29',end:'2000-03-
 it.each([{start:'1900-02-29',end:'1900-03-01'},{start:'2026-04-31',end:'2026-05-01'},{start:'2026-01-02',end:'2026-01-01'},{start:'2026-1-01',end:'2026-01-02'},{start:'0000-01-01',end:'0000-01-02'}])('rejects invalid date range',v=>{expect(validateDateRange(v).ok).toBe(false);});
 it.each([{...project,use:'unknown'},{...project,orderType:'unknown'},{...project,requiredServices:['unknown']},{...project,requireListedLicense:'false'},{...project,name:''},{...project,name:'x'.repeat(121)},{...project,floors:Number.MAX_SAFE_INTEGER+1}])('rejects enum and identity boundaries',v=>{expect(validateProject(v).ok).toBe(false);});
 it.each([{...partner,capacity:Number.MAX_SAFE_INTEGER+1},{...partner,code:'../x'},{...partner,code:'x'.repeat(33)},{...partner,shortName:'x'.repeat(81)},{...partner,regions:['unknown']},{...partner,active:1},{...partner,services:['unknown']},{...partner,experience:{...experience,unknown:{新築:0,改修:0}}},{...partner,experience:{...experience,'公共施設':{新築:0,改修:0,unknown:0}}}])('rejects partner strict boundaries',v=>{expect(validatePartner(v).ok).toBe(false);});
+it('rejects experience totals outside exact integer arithmetic',()=>{
+ expect(validatePartner({...partner,experience:{...experience,'公共施設':{'新築':Number.MAX_SAFE_INTEGER,'改修':1}}}).ok).toBe(false);
+});
